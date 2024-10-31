@@ -1,0 +1,32 @@
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_MASTER_PASS}
+      - MYSQL_DATABASE=${MYSQL_MASTER_NAME}
+    volumes:
+      - ./docker/mysql/data/:/var/lib/mysql/
+    command: --default-authentication-plugin=caching_sha2_password
+    # healthcheck:
+    #   start_period: 10s
+    #   test: ["CMD", "mysql", "--user=root", "--password=${MYSQL_PASS}", "-e", "show databases;"]
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 3
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.5'
+    #       memory: 2048M
+    restart: unless-stopped
+  pma:
+    container_name: pma
+    image: phpmyadmin:latest
+    restart: always
+    environment:
+      - PMA_HOST=mysql
+      - PMA_ARBITRARY=1
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql

@@ -1,0 +1,15 @@
+  cpp:
+    container_name: pod
+    build:
+      context: .
+      dockerfile: cpp.dockerfile
+    volumes:
+      - ./:/var/www/pod
+    restart: unless-stopped
+    ports:
+      - "3001:3001" # backend
+      # - "3002:3002" # socket.io
+      # - "3003:3003" # telegram 8433
+    # depends_on:
+    #   - mysql
+    tty: true

@@ -1,0 +1,9 @@
+  zookeeper:
+    container_name: zookeeper
+    image: wurstmeister/zookeeper:latest
+    platform: linux/amd64
+    volumes:
+      - ./docker/zookeeper/data:/data
+    restart: unless-stopped
+    ports:
+      - "2181:2181"
