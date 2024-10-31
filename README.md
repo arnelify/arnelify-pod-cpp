@@ -13,7 +13,7 @@
 ## 📦 Installation
 Install to the folder that needs to be created:
 ```
-clone https://github.com/arnelify/arnelify-pod-cpp.git
+git clone https://github.com/arnelify/arnelify-pod-cpp.git
 ```
 
 Create .env from .env.local:

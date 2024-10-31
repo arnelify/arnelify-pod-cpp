@@ -27,28 +27,23 @@ PATH_BIN = ./src/core/boot/bin/index
 INC_APP = -I ./app
 INC_CORE = -I ./src/core
 INC_INCLUDE = -L ./include
-INC_JSONCPP = -I ./include/jsoncpp/json
 
-INC = ${INC_APP} ${INC_CORE} ${INC_INCLUDE} ${INC_JSONCPP}
+INC = ${INC_APP} ${INC_CORE} ${INC_INCLUDE}
 
-# LINK
-LINK_JSONCPP = -ljsoncpp
-LINK = ${LINK_JSONCPP}
-
-BEFORE = clear
+BEFORE = mkdir -p ./src/core/boot/bin && clear
 
 # SCRIPTS
 setup:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) setup
+	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) setup
 
 build:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) build
+	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) build
 
 watch:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) watch
+	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) watch
 
 migrate:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) migrate
+	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) migrate
 
 seed:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) seed
+	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) seed
