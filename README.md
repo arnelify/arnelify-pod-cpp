@@ -26,12 +26,11 @@ Run Docker:
 ```
 docker compose up -d
 ```
-
-## 🎉 Usage
 Install dependencies:
 ```
 make setup
 ```
+## 🎉 Usage
 Compile pod:
 ```
 make build
