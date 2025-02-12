@@ -1,1 +1,6 @@
+networks:
+  arnelify-network:
+    name: arnelify-network
+    driver: bridge
+    
 services:

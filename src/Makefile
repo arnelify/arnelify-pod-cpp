@@ -1,46 +1,34 @@
-# Server Makefile
+# Boot Makefile
 # See https://www.gnu.org/software/make/manual/make.html for more about make.
-#
-# For VSCode or Visual Studio Code.
-# Add the following to your IncludePath settings:
-#
-# C/C++ IntelliSense Plugin > Settings > Clang_format_fallback Style > Google
-#
-#	"includePath": [
-#		"${workspaceFolder}/src/app",
-#		"${workspaceFolder}/src/core",
-#		"${workspaceFolder}/include/jsoncpp/json",
-#		"${workspaceFolder}/include"
-#	],
-# "cppStandard": "c++23",
-# "cStandard": "c23",
 
-# CXX
-CXX = g++
-CXX_FLAGS = -std=c++23
+# ENGINE
+ENGINE_BUILD = g++
+ENGINE_BUILD_FLAGS = -std=c++2b
+ENGINE_WATCH = clang++
+ENGINE_WATCH_FLAGS = -std=c++2b
 
 # PATH
-PATH_WATCH_SRC = ./watch.cpp
-PATH_BUILD_SRC = ./server.cpp
+PATH_WATCH = $(CURDIR)/watch.cpp
+PATH_BUILD = $(CURDIR)/server.cpp
 PATH_BIN = ../pod/server
 
 # INC
-INC_APP = -I ./app
-INC_CORE = -I ./core
-INC_INCLUDE = -L ../include
-INC_JSONCPP = -I ../include/jsoncpp/json
-
+INC_APP = -I $(CURDIR)/app
+INC_CORE = -I $(CURDIR)/core
+INC_INCLUDE = -L /usr/include
+INC_JSONCPP = -I /usr/include/jsoncpp/json
 INC = ${INC_APP} ${INC_CORE} ${INC_INCLUDE} ${INC_JSONCPP}
 
 # LINK
 LINK_JSONCPP = -ljsoncpp
-LINK_BOOST = -lboost_system -lboost_thread
-LINK_MAGIC = -lmagic
-LINK = ${LINK_JSONCPP} ${LINK_BOOST} ${LINK_MAGIC}
+LINK_ZLIB = -lz
+LINK = ${LINK_JSONCPP} ${LINK_ZLIB}
 
 # SCRIPTS
 build:
-	$(CXX) $(CXX_FLAGS) $(PATH_BUILD_SRC) ${INC} -o $(PATH_BIN) ${LINK}
+	$(ENGINE_BUILD) $(ENGINE_BUILD_FLAGS) $(PATH_BUILD) ${INC} -o $(PATH_BIN) ${LINK}
 
 watch:
-	$(CXX) $(CXX_FLAGS) $(PATH_WATCH_SRC) ${INC} -o $(PATH_BIN) ${LINK}
+	$(ENGINE_WATCH) $(ENGINE_WATCH_FLAGS) $(PATH_WATCH) ${INC} -o $(PATH_BIN) ${LINK}
+
+.PHONY: build watch

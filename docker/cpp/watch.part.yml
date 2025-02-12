@@ -1,15 +1,16 @@
   cpp:
-    container_name: pod
+    container_name: cpp
     build:
       context: .
       dockerfile: cpp.dockerfile
     volumes:
-      - ./:/var/www/pod
+      - ./pod:/var/www/cpp/pod
+      - ./src:/var/www/cpp/src
     restart: unless-stopped
+    networks:
+      - arnelify-network
     ports:
-      - "3001:3001" # backend
-      # - "3002:3002" # socket.io
-      # - "3003:3003" # telegram 8433
-    # depends_on:
-    #   - mysql
+      - "3001:3001"
+    depends_on:
+      - mysql
     tty: true

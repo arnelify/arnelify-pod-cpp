@@ -1,49 +1,43 @@
 # Boot Makefile
 # See https://www.gnu.org/software/make/manual/make.html for more about make.
-#
-# For VSCode or Visual Studio Code.
-# Add the following to your IncludePath settings:
-#
-# C/C++ IntelliSense Plugin > Settings > Clang_format_fallback Style > Google
-#
-#	"includePath": [
-#		"${workspaceFolder}/src/app",
-#		"${workspaceFolder}/src/core",
-#		"${workspaceFolder}/include/jsoncpp/json",
-#		"${workspaceFolder}/include"
-#	],
-# "cppStandard": "c++23",
-# "cStandard": "c23",
 
-# CXX
-CXX = g++
-CXX_FLAGS = -std=c++23
+# ENGINE
+ENGINE = clang++
+ENGINE_FLAGS = -std=c++2b
 
 # PATH
-PATH_SRC = ./src/core/boot/index.cpp
-PATH_BIN = ./src/core/boot/bin/index
+PATH_SRC = $(CURDIR)/src/core/boot/index.cpp
+PATH_BIN = $(CURDIR)/src/core/boot/bin/index
 
 # INC
-INC_APP = -I ./app
-INC_CORE = -I ./src/core
-INC_INCLUDE = -L ./include
+INC_CORE = -I $(CURDIR)/src/core
+INC_INCLUDE = -L /usr/include
+INC_JSONCPP = -I /usr/include/jsoncpp/json
+INC = ${INC_CORE} ${INC_INCLUDE} ${INC_JSONCPP}
 
-INC = ${INC_APP} ${INC_CORE} ${INC_INCLUDE}
-
-BEFORE = mkdir -p ./src/core/boot/bin && clear
+# LINK
+LINK_JSONCPP = -ljsoncpp
+LINK = ${LINK_JSONCPP}
 
 # SCRIPTS
 setup:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) setup
+	clear && mkdir -p src/core/boot/bin
+	clear && $(ENGINE) $(ENGINE_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) setup
 
 build:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) build
+	clear && mkdir -p src/core/boot/bin
+	clear && $(ENGINE) $(ENGINE_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) build
 
 watch:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) watch
+	clear && mkdir -p src/core/boot/bin
+	clear && $(ENGINE) $(ENGINE_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) watch
 
 migrate:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) migrate
+	clear && mkdir -p src/core/boot/bin
+	clear && $(ENGINE) $(ENGINE_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) migrate
 
 seed:
-	${BEFORE} && $(CXX) $(CXX_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) && $(PATH_BIN) seed
+	clear && mkdir -p src/core/boot/bin
+	clear && $(ENGINE) $(ENGINE_FLAGS) $(PATH_SRC) ${INC} -o $(PATH_BIN) ${LINK} && $(PATH_BIN) seed
+
+.PHONY: setup build watch migrate seed

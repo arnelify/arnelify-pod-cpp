@@ -1,0 +1,22 @@
+  cpp:
+    container_name: cpp
+    build:
+      context: .
+      dockerfile: cpp.dockerfile
+    volumes:
+      - ./:/var/www/cpp
+    healthcheck:
+      start_period: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1024M
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    tty: true

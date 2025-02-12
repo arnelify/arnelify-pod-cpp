@@ -1,14 +1,18 @@
+#ifndef BOOT_CPP
+#define BOOT_CPP
+
 #include <cstring>
 #include <iostream>
 #include <thread>
 
-#include "plant/index.hpp"
-#include "watcher/index.hpp"
+#include "logger/index.cpp"
+#include "plant/index.cpp"
+#include "watcher/index.cpp"
 
 class Boot {
  public:
   static const void setup() {
-    Logger::warning("Installing framework...");
+    Logger::warning("Installing framework...\n");
 
     Plant::mkdir("./src/app/middleware");
     Plant::mkdir("./src/app/repositories");
@@ -20,25 +24,23 @@ class Boot {
     Plant::mkdir("./src/database/seeds");
     Plant::mkdir("./src/tests");
 
-    Logger::warning("Installing package: 'libboost-all-dev'...");
+    Logger::warning("Installing packages: 'arnelify-server@0.6.1'...", 128);
+    system("make -C ./src/core/server build > /dev/null 2>&1");
 
-    Plant::xcopy("/usr/include/boost/", "./include/boost");
-    
-    Logger::warning("Installing package: 'libjsoncpp-dev'...");
+    Logger::warning("Installing packages: 'arnelify-router@0.5.4'...", 128);
+    system("make -C ./src/core/router build > /dev/null 2>&1");
 
-    Plant::xcopy("/usr/include/jsoncpp", "./include/jsoncpp");
-    
-    Logger::warning("Installing package: 'libmagic-dev'...");
-    
-    Plant::xcopy("/usr/include/magic.h", "./include/magic.h");
+    Logger::warning("Installing packages: 'arnelify-broker@0.5.5'...", 128);
+    system("make -C ./src/core/broker build > /dev/null 2>&1");
 
-    Logger::success("Successful!");
+    Logger::warning("Installing packages...\n", 128);
+    Logger::success("Successfully!\n");
   }
 
   static const void build() {
-    const WatcherPath envPath = "./.env";
-    const WatcherPath watchPath = "./src/server.cpp";
-    const WatcherPath serverPath = "./pod/server";
+    const WatcherPath envPath = ".env";
+    const WatcherPath watchPath = "src/server.cpp";
+    const WatcherPath serverPath = "pod/server";
 
     Watcher watcher;
     watcher.apply(envPath);
@@ -46,59 +48,60 @@ class Boot {
   }
 
   static const void watch() {
-    const WatcherPath envPath = "./.env";
-    const WatcherPath watchPath = "./src/watch.cpp";
-    const WatcherPath serverPath = "./pod/server";
-    const WatcherPath srcPath = "./src";
+    const WatcherPath envPath = ".env";
+    const WatcherPath watchPath = "src/watch.cpp";
+    const WatcherPath serverPath = "pod/server";
 
     Watcher watcher;
     watcher.apply(envPath);
     watcher.build(watchPath, serverPath);
     watcher.start(serverPath);
-    watcher.watch(srcPath, watchPath, serverPath);
+    watcher.watch(watchPath, serverPath);
   }
 
   static const void migrate() {
-    Logger::danger("This feature will be available in future versions.");
+    Logger::danger("This feature will be available in future versions.\n");
   }
 
   static const void seed() {
-    Logger::danger("This feature will be available in future versions.");
+    Logger::danger("This feature will be available in future versions.\n");
   }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   for (int i = 0; argc > i; ++i) {
     const bool isSetup = strcmp(argv[i], "setup") == 0;
     if (isSetup) {
       Boot::setup();
-      return 0;
+      break;
     }
 
     const bool isBuild = strcmp(argv[i], "build") == 0;
     if (isBuild) {
       Boot::build();
-      return 0;
+      break;
     }
 
     const bool isWatch = strcmp(argv[i], "watch") == 0;
     if (isWatch) {
       Boot::watch();
-      return 0;
+      break;
     }
 
     const bool isMigrate = strcmp(argv[i], "migrate") == 0;
     if (isMigrate) {
       Boot::migrate();
-      return 0;
+      break;
     }
 
     const bool isSeed = strcmp(argv[i], "seed") == 0;
     if (isSeed) {
       Boot::seed();
-      return 0;
+      break;
     }
   }
 
   return 0;
 }
+
+#endif

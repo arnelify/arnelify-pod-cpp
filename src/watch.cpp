@@ -1,121 +1,93 @@
-#include <any>
+#ifndef WATCH_SERVER_CPP
+#define WATCH_SERVER_CPP
+
+#include <iostream>
+#include <optional>
 
 #include "json.h"
 
-#include "env/index.hpp"
-#include "core/boot/boost/index.hpp"
-#include "logger/index.hpp"
+#include "env/index.cpp"
+#include "logger/index.cpp"
+#include "server/index.cpp"
 
-#include "router/index.hpp"
-#include "routes.hpp"
-
-class Watch {
- private:
-  Router router;
-  BoostServer server;
-  std::any io;
-
-  RouterCtx getCtx(const BoostReq& req) {
-    Json::Value _state = Json::objectValue;
-    _state["agent"] = req["user_agent"];
-    _state["cookie"] = req["cookie"];
-    _state["host"] = req["host"];
-    _state["ip"] = req["clientIP"];
-    _state["method"] = req["method"];
-    _state["path"] = req["target"];
-    _state["route"] = Json::nullValue;
-
-    Json::Value params = Json::objectValue;
-    params["_state"] = _state;
-
-    const bool hasParams = req["params"].isObject() && req.isMember("params");
-    if (hasParams) {
-      for (const auto& key : req["params"].getMemberNames()) {
-        params[key] = req["params"][key];
-      }
-    }
-
-    const bool hasBody = req["body"].isObject() && req.isMember("body");
-    if (hasBody) {
-      for (const auto& key : req["body"].getMemberNames()) {
-        params[key] = req["body"][key];
-      }
-    }
-
-    RouterCtx ctx = Json::objectValue;
-    ctx["params"] = params;
-    return ctx;
-  }
-
-  BoostHandler handler = [this](const BoostReq& req, BoostRes& res) {
-    RouterCtx ctx = this->getCtx(req);
-
-    this->router.request(ctx, [&](const std::optional<Route>& routeOpt) {
-      const auto& contentTypeKey = boost::beast::http::field::content_type;
-      Json::Value response = Json::objectValue;
-      Json::StreamWriterBuilder writer;
-      writer["indentation"] = "";
-
-      if (!routeOpt) {
-        response["code"] = 404;
-        response["error"] = "Not found.";
-
-        res.result(response["code"].asInt());
-        res.set(contentTypeKey, "application/json");
-        res.body() = Json::writeString(writer, response);
-        return;
-      }
-
-      const Route rawRoute = *routeOpt;
-      Json::Value route = Json::objectValue;
-      route["method"] = *rawRoute.method;
-      route["params"] = rawRoute.params;
-      route["pattern"] = rawRoute.pattern;
-      ctx["params"]["_state"]["route"] = route;
-      response = rawRoute.controller(ctx);
-
-      const bool isObject = response.isObject();
-      if (!isObject) {
-        res.result(200);
-        res.set(contentTypeKey, "application/json");
-        res.body() = Json::writeString(writer, response);
-        return;
-      }
-
-      const bool hasCode = response.isMember("code");
-      if (!hasCode) {
-        res.result(200);
-        res.set(contentTypeKey, "application/json");
-        res.body() = Json::writeString(writer, response);
-        return;
-      }
-
-      res.result(response["code"].asInt());
-      res.set(contentTypeKey, "application/json");
-      res.body() = Json::writeString(writer, response);
-    });
-  };
-
- public:
-  Watch() : server(env.SERVER_PORT) {
-    routes(this->router);
-    this->server.setHandler(this->handler);
-  }
-
-  void start() {
-    this->server.start([]() {
-      Logger::success("Server is running on port " + env.SERVER_PORT);
-    });
-  }
-
-  void stop() {
-    this->server.start([]() { Logger::success("Server stopped"); });
-  }
-};
+#include "broker/index.cpp"
+#include "router/index.cpp"
+#include "routes.cpp"
 
 int main(int argc, char* argv[]) {
-  Watch watch;
-  watch.start();
+  ArnelifyRouter router;
+  routes(router);
+
+  Json::Value opts;
+  opts["SERVER_ALLOW_EMPTY_FILES"] = env.SERVER_ALLOW_EMPTY_FILES == "true";
+  opts["SERVER_BLOCK_SIZE_KB"] = std::stoi(env.SERVER_BLOCK_SIZE_KB);
+  opts["SERVER_CHARSET"] = env.SERVER_CHARSET;
+  opts["SERVER_GZIP"] = env.SERVER_GZIP == "true";
+  opts["SERVER_KEEP_EXTENSIONS"] = env.SERVER_KEEP_EXTENSIONS == "true";
+  opts["SERVER_MAX_FIELDS"] = std::stoi(env.SERVER_MAX_FIELDS);
+  opts["SERVER_MAX_FIELDS_SIZE_TOTAL_MB"] =
+      std::stoi(env.SERVER_MAX_FIELDS_SIZE_TOTAL_MB);
+  opts["SERVER_MAX_FILES"] = std::stoi(env.SERVER_MAX_FILES);
+  opts["SERVER_MAX_FILES_SIZE_TOTAL_MB"] =
+      std::stoi(env.SERVER_MAX_FILES_SIZE_TOTAL_MB);
+  opts["SERVER_MAX_FILE_SIZE_MB"] = std::stoi(env.SERVER_MAX_FILE_SIZE_MB);
+  opts["SERVER_PORT"] = std::stoi(env.SERVER_PORT);
+  opts["SERVER_QUEUE_LIMIT"] = std::stoi(env.SERVER_QUEUE_LIMIT);
+  opts["SERVER_UPLOAD_PATH"] = "./src/storage/upload";
+  ArnelifyServer server(opts);
+
+  server.setHandler(
+      [&router](const ArnelifyServerReq& req, ArnelifyServerRes& res) {
+        Json::StreamWriterBuilder writer;
+        writer["indentation"] = "";
+        writer["emitUTF8"] = true;
+
+        const std::string method = req["_state"]["method"].asString();
+        const std::string path = req["_state"]["path"].asString();
+        const std::optional<Route> routeOpt = router.find(method, path);
+        if (!routeOpt) {
+          Json::Value json;
+          json["code"] = 404;
+          json["error"] = "Not found.";
+
+          res.setCode(404);
+          res.addBody(Json::writeString(writer, json));
+          res.end();
+          return;
+        }
+
+        res.setCode(200);
+        const Route& route = *routeOpt;
+        const std::optional<Controller> controllerOpt =
+            router.getController(route.id);
+        const Controller& controller = *controllerOpt;
+
+        Ctx ctx;
+        ctx["params"] = req;
+        const Json::Value response = controller(ctx);
+        const bool isObject = response.isObject();
+        if (!isObject) {
+          res.addBody(Json::writeString(writer, response));
+          res.end();
+          return;
+        }
+
+        const bool hasCode = response.isMember("code") && response.isInt();
+        if (hasCode) res.setCode(response["code"].asInt());
+        res.addBody(Json::writeString(writer, response));
+        res.end();
+      });
+
+  server.start([](const std::string& message, const bool& isError) {
+    if (isError) {
+      Logger::danger(message + "\n");
+      return;
+    }
+
+    Logger::success(message + "\n");
+  });
 
   return 0;
 }
+
+#endif

@@ -1,121 +1,94 @@
-#include <any>
+#ifndef BUILD_SERVER_CPP
+#define BUILD_SERVER_CPP
+
+#include <iostream>
+#include <optional>
 
 #include "json.h"
 
-#include "env/index.hpp"
-#include "core/boot/boost/index.hpp"
-#include "logger/index.hpp"
+#include "core/env/index.cpp"
+#include "core/logger/index.cpp"
+#include "core/server/index.cpp"
 
-#include "router/index.hpp"
-#include "routes.hpp"
+#include "core/broker/index.cpp"
+#include "core/router/index.cpp"
+#include "routes.cpp"
 
-class Server {
- private:
-  Router router;
-  BoostServer server;
-  std::any io;
-
-  RouterCtx getCtx(const BoostReq& req) {
-    Json::Value _state = Json::objectValue;
-    _state["agent"] = req["user_agent"];
-    _state["cookie"] = req["cookie"];
-    _state["host"] = req["host"];
-    _state["ip"] = req["clientIP"];
-    _state["method"] = req["method"];
-    _state["path"] = req["target"];
-    _state["route"] = Json::nullValue;
-
-    Json::Value params = Json::objectValue;
-    params["_state"] = _state;
-
-    const bool hasParams = req["params"].isObject() && req.isMember("params");
-    if (hasParams) {
-      for (const auto& key : req["params"].getMemberNames()) {
-        params[key] = req["params"][key];
-      }
-    }
-
-    const bool hasBody = req["body"].isObject() && req.isMember("body");
-    if (hasBody) {
-      for (const auto& key : req["body"].getMemberNames()) {
-        params[key] = req["body"][key];
-      }
-    }
-
-    RouterCtx ctx = Json::objectValue;
-    ctx["params"] = params;
-    return ctx;
-  }
-
-  BoostHandler handler = [this](const BoostReq& req, BoostRes& res) {
-    RouterCtx ctx = this->getCtx(req);
-
-    this->router.request(ctx, [&](const std::optional<Route>& routeOpt) {
-      const auto& contentTypeKey = boost::beast::http::field::content_type;
-      Json::Value response = Json::objectValue;
-      Json::StreamWriterBuilder writer;
-      writer["indentation"] = "";
-
-      if (!routeOpt) {
-        response["code"] = 404;
-        response["error"] = "Not found.";
-
-        res.result(response["code"].asInt());
-        res.set(contentTypeKey, "application/json");
-        res.body() = Json::writeString(writer, response);
-        return;
-      }
-
-      const Route rawRoute = *routeOpt;
-      Json::Value route = Json::objectValue;
-      route["method"] = *rawRoute.method;
-      route["params"] = rawRoute.params;
-      route["pattern"] = rawRoute.pattern;
-      ctx["params"]["_state"]["route"] = route;
-      response = rawRoute.controller(ctx);
-
-      const bool isObject = response.isObject();
-      if (!isObject) {
-        res.result(200);
-        res.set(contentTypeKey, "application/json");
-        res.body() = Json::writeString(writer, response);
-        return;
-      }
-
-      const bool hasCode = response.isMember("code");
-      if (!hasCode) {
-        res.result(200);
-        res.set(contentTypeKey, "application/json");
-        res.body() = Json::writeString(writer, response);
-        return;
-      }
-
-      res.result(response["code"].asInt());
-      res.set(contentTypeKey, "application/json");
-      res.body() = Json::writeString(writer, response);
-    });
-  };
-
- public:
-  Server() : server(env.SERVER_PORT) {
-    routes(this->router);
-    this->server.setHandler(this->handler);
-  }
-
-  void start() {
-    this->server.start([]() {
-      Logger::success("Server is running on port " + env.SERVER_PORT);
-    });
-  }
-
-  void stop() {
-    this->server.start([]() { Logger::success("Server stopped"); });
-  }
-};
+#include "server/src/cpp/contracts/opts.hpp"
 
 int main(int argc, char* argv[]) {
-  Server server;
-  server.start();
+  ArnelifyRouter router;
+  routes(router);
+
+  ArnelifyServerOpts opts(
+  env.SERVER_ALLOW_EMPTY_FILES == "true",
+  std::stoi(env.SERVER_BLOCK_SIZE_KB),
+  env.SERVER_CHARSET,
+  env.SERVER_GZIP == "true",
+  env.SERVER_KEEP_EXTENSIONS == "true",
+  std::stoi(env.SERVER_MAX_FIELDS),
+  std::stoi(env.SERVER_MAX_FIELDS_SIZE_TOTAL_MB),
+  std::stoi(env.SERVER_MAX_FILES),
+  std::stoi(env.SERVER_MAX_FILES_SIZE_TOTAL_MB),
+  std::stoi(env.SERVER_MAX_FILE_SIZE_MB),
+  std::stoi(env.SERVER_PORT),
+  std::stoi(env.SERVER_QUEUE_LIMIT),
+  "./src/storage/upload");
+
+  ArnelifyServer server(opts);
+
+  server.setHandler(
+      [&router](const ArnelifyServerReq& req, ArnelifyServerRes res) {
+        Json::StreamWriterBuilder writer;
+        writer["indentation"] = "";
+        writer["emitUTF8"] = true;
+
+        const std::string method = req["_state"]["method"].asString();
+        const std::string path = req["_state"]["path"].asString();
+        const std::optional<Route> routeOpt = router.find(method, path);
+        if (!routeOpt) {
+          Json::Value json;
+          json["code"] = 404;
+          json["error"] = "Not found.";
+
+          res->setCode(404);
+          res->addBody(Json::writeString(writer, json));
+          res->end();
+          return;
+        }
+
+        res->setCode(200);
+        const Route& route = *routeOpt;
+        const std::optional<Controller> controllerOpt =
+            router.getController(route.id);
+        const Controller& controller = *controllerOpt;
+
+        Ctx ctx;
+        ctx["params"] = req;
+        const Json::Value response = controller(ctx);
+        const bool isObject = response.isObject();
+        if (!isObject) {
+          res->addBody(Json::writeString(writer, response));
+          res->end();
+          return;
+        }
+
+        const bool hasCode = response.isMember("code") && response.isInt();
+        if (hasCode) res->setCode(response["code"].asInt());
+        res->addBody(Json::writeString(writer, response));
+        res->end();
+      });
+
+  server.start([](const std::string& message, const bool& isError) {
+    if (isError) {
+      Logger::danger(message + "\n");
+      return;
+    }
+
+    Logger::success(message + "\n");
+  });
 
   return 0;
 }
+
+#endif
