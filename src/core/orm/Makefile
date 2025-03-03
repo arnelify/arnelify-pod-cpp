@@ -22,7 +22,8 @@ INC = ${INC_SRC} ${INC_CPP} ${INC_INCLUDE} ${INC_JSONCPP}
 
 # LINK
 LINK_JSONCPP = -ljsoncpp
-LINK = ${LINK_JSONCPP}
+LINK_MYSQL= -lmysqlclient
+LINK = ${LINK_JSONCPP} ${LINK_MYSQL}
 
 # SCRIPTS
 build:

@@ -17,6 +17,8 @@
           cpus: '1'
           memory: 1024M
     restart: unless-stopped
+    networks:
+      - arnelify-network
     ports:
       - "3001:3001"
     tty: true

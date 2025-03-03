@@ -7,14 +7,14 @@ ENGINE_WATCH = clang++
 ENGINE_FLAGS = -std=c++2b
 
 # PATH
-PATH_BIN = ./build/index.so
-PATH_SRC = ./src/cpp/ffi.cpp
-PATH_TESTS_BIN = ./src/tests/bin/index
-PATH_TESTS_SRC = ./src/tests/index.cpp
+PATH_BIN = $(CURDIR)/build/index.so
+PATH_SRC = $(CURDIR)/src/cpp/ffi.cpp
+PATH_TESTS_BIN = $(CURDIR)/src/tests/bin/index
+PATH_TESTS_SRC = $(CURDIR)/src/tests/index.cpp
 
 # INC
-INC_SRC = -I ./src
-INC_CPP = -I ./src/cpp
+INC_SRC = -I $(CURDIR)/src
+INC_CPP = -I $(CURDIR)/src/cpp
 INC_INCLUDE = -L /usr/include
 INC_JSONCPP = -I /usr/include/jsoncpp/json
 
@@ -26,11 +26,11 @@ LINK = ${LINK_JSONCPP}
 
 # SCRIPTS
 build:
-	clear && mkdir -p ./build && rm -rf ./build/*
+	clear && mkdir -p build && rm -rf build/*
 	${ENGINE_BUILD} ${ENGINE_FLAGS} ${INC} ${LINK} -fPIC -shared ${PATH_SRC} -o ${PATH_BIN}
 
 test:
-	clear && mkdir -p ./src/tests/bin && rm -rf ./src/tests/bin/*
+	clear && mkdir -p src/tests/bin && rm -rf src/tests/bin/*
 	${ENGINE_WATCH} $(ENGINE_FLAGS) $(PATH_TESTS_SRC) ${INC} ${LINK} -o $(PATH_TESTS_BIN) && $(PATH_TESTS_BIN)
 
 .PHONY: build test

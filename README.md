@@ -1,6 +1,6 @@
 <img src="https://static.wikia.nocookie.net/arnelify/images/c/c8/Arnelify-logo-2024.png/revision/latest?cb=20240701012515" style="width:336px;" alt="Arnelify Logo" />
 
-![Arnelify POD for C++](https://img.shields.io/badge/Arnelify%20POD%20for%20C++-0.5.9-yellow) ![C++](https://img.shields.io/badge/C++-2b-red) ![G++](https://img.shields.io/badge/G++-14.2.0-blue) ![C-Lang](https://img.shields.io/badge/CLang-14.0.6-blue)
+![Arnelify POD for C++](https://img.shields.io/badge/Arnelify%20POD%20for%20C++-0.6.3-yellow) ![C++](https://img.shields.io/badge/C++-2b-red) ![G++](https://img.shields.io/badge/G++-14.2.0-blue) ![C-Lang](https://img.shields.io/badge/CLang-14.0.6-blue)
 
 ## 🚀 About
 **Arnelify® POD for C++** - is a BackEnd-framework for creating scalable microservices applications.
@@ -59,16 +59,17 @@ Join us to help improve this software, fix bugs or implement new functionality. 
 
 
 ## ⭐ Release Notes
-Version 0.5.9 - Minimalistic dynamic library
+Version 0.6.3 - ORM
 
 We are excited to introduce the Arnelify Server for C++ dynamic library! Please note that this version is raw and still in active development.
 
 Change log:
 
 * Development mode: replaced the g++ with clang++.
-* New <a href="https://github.com/arnelify/arnelify-server-cpp">Arnelify Server</a>.
+* New <a href="https://github.com/arnelify/arnelify-server-cpp">Arnelify Server</a>
 * New <a href="https://github.com/arnelify/arnelify-router-cpp">Arnelify Router</a>
 * New <a href="https://github.com/arnelify/arnelify-broker-cpp">Arnelify Broker</a>
+* New <a href="https://github.com/arnelify/arnelify-orm-cpp">Arnelify ORM</a>
 * Significant refactoring and optimizations
 
 Please use this version with caution, as it may contain bugs and unfinished features. We are actively working on improving and expanding the framework's capabilities, and we welcome your feedback and suggestions.

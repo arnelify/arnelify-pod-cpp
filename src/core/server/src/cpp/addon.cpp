@@ -185,7 +185,7 @@ Napi::Value server_create(const Napi::CallbackInfo& args) {
       json["SERVER_QUEUE_LIMIT"].asInt(), json["SERVER_UPLOAD_DIR"].asString());
 
   server = new ArnelifyServer(opts);
-  server->setHandler([](const ArnelifyServerReq& req, ArnelifyServerRes res) {
+  server->setHandler([](const Req& req, Res res) {
     std::promise<const std::string> promise;
     std::future<const std::string> future = promise.get_future();
     std::thread thread(

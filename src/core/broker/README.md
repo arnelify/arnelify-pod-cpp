@@ -1,6 +1,6 @@
 <img src="https://static.wikia.nocookie.net/arnelify/images/c/c8/Arnelify-logo-2024.png/revision/latest?cb=20240701012515" style="width:336px;" alt="Arnelify Logo" />
 
-![Arnelify Broker for C++](https://img.shields.io/badge/Arnelify%20Broker%20for%20C++-0.5.4-yellow) ![C++](https://img.shields.io/badge/C++-2b-red) ![G++](https://img.shields.io/badge/G++-14.2.0-blue) ![C-Lang](https://img.shields.io/badge/CLang-14.0.6-blue)
+![Arnelify Broker for C++](https://img.shields.io/badge/Arnelify%20Broker%20for%20C++-0.5.8-yellow) ![C++](https://img.shields.io/badge/C++-2b-red) ![G++](https://img.shields.io/badge/G++-14.2.0-blue) ![C-Lang](https://img.shields.io/badge/CLang-14.0.6-blue)
 
 ## 🚀 About
 **Arnelify® Broker for C++** - is a minimalistic dynamic library which is a message broker written in C and C++.
@@ -55,7 +55,7 @@ Join us to help improve this software, fix bugs or implement new functionality. 
 
 
 ## ⭐ Release Notes
-Version 0.5.4 - Minimalistic dynamic library
+Version 0.5.8 - Minimalistic dynamic library
 
 We are excited to introduce the Arnelify Broker for C++ dynamic library! Please note that this version is raw and still in active development.
 

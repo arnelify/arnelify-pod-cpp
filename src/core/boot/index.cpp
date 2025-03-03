@@ -24,13 +24,16 @@ class Boot {
     Plant::mkdir("./src/database/seeds");
     Plant::mkdir("./src/tests");
 
-    Logger::warning("Installing packages: 'arnelify-server@0.6.1'...", 128);
+    Logger::warning("Installing packages: 'arnelify-server@0.6.3'...", 128);
     system("make -C ./src/core/server build > /dev/null 2>&1");
 
-    Logger::warning("Installing packages: 'arnelify-router@0.5.4'...", 128);
+    Logger::warning("Installing packages: 'arnelify-router@0.5.8'...", 128);
     system("make -C ./src/core/router build > /dev/null 2>&1");
 
-    Logger::warning("Installing packages: 'arnelify-broker@0.5.5'...", 128);
+    Logger::warning("Installing packages: 'arnelify-broker@0.5.8'...", 128);
+    system("make -C ./src/core/broker build > /dev/null 2>&1");
+
+    Logger::warning("Installing packages: 'arnelify-orm@0.6.1'...", 128);
     system("make -C ./src/core/broker build > /dev/null 2>&1");
 
     Logger::warning("Installing packages...\n", 128);

@@ -1,3 +1,8 @@
+networks:
+  arnelify-network:
+    name: arnelify-network
+    driver: bridge
+    
 services:
   cpp:
     container_name: cpp
@@ -7,6 +12,8 @@ services:
     volumes:
       - ./:/var/www/cpp
     restart: unless-stopped
+    networks:
+      - arnelify-network
     ports:
       - "3001:3001"
     tty: true
